@@ -35,8 +35,8 @@ export async function POST(request: NextRequest) {
     let emailResults = {
       notification: false,
       confirmation: false,
-      notificationError: null,
-      confirmationError: null
+      notificationError: null as string | null,
+      confirmationError: null as string | null
     }
 
     try {
@@ -70,8 +70,9 @@ export async function POST(request: NextRequest) {
       }
     } catch (error) {
       console.error('❌ Error sending emails:', error)
-      emailResults.notificationError = `Email send failed: ${error.message}`
-      emailResults.confirmationError = `Email send failed: ${error.message}`
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      emailResults.notificationError = `Email send failed: ${errorMessage}`
+      emailResults.confirmationError = `Email send failed: ${errorMessage}`
     }
     
     console.log('📧 Email results:', emailResults)

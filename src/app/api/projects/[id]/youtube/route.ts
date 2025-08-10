@@ -74,12 +74,12 @@ export async function POST(
         youtube_id: cloudinaryResult.youtube_id,
         original_url: youtubeUrl,
         title: cloudinaryResult.youtubeData.title,
-        description: cloudinaryResult.youtubeData.description,
-        thumbnail: cloudinaryResult.youtubeData.thumbnail,
-        channelTitle: cloudinaryResult.youtubeData.channelTitle,
-        publishedAt: cloudinaryResult.youtubeData.publishedAt,
-        viewCount: cloudinaryResult.youtubeData.viewCount,
-        duration: cloudinaryResult.youtubeData.duration
+        description: '', // YouTube API doesn't provide description in basic info
+        thumbnail: '', // YouTube API doesn't provide thumbnail in basic info
+        channelTitle: '', // YouTube API doesn't provide channel title in basic info
+        publishedAt: '', // YouTube API doesn't provide published date in basic info
+        viewCount: 0, // YouTube API doesn't provide view count in basic info
+        duration: 0 // YouTube API doesn't provide duration in basic info
       }
     }
 
