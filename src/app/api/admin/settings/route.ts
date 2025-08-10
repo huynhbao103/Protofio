@@ -128,8 +128,8 @@ function checkEmailConfigured(): boolean {
   return !!(process.env.SMTP_USER && process.env.SMTP_PASS)
 }
 
-// GET /api/admin/settings/status - Get system status
-export async function GET_STATUS() {
+// Helper function to get system status
+function getSystemStatus() {
   try {
     const emailConfigured = checkEmailConfigured()
     const mongoConnected = mongoose.connection.readyState === 1
