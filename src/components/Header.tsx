@@ -166,7 +166,8 @@ function Header() {
               </div>
             </button>
 
-            {user && (
+            {/* Admin controls hidden in production */}
+            {process.env.NODE_ENV === 'development' && user && (
               <div className="flex items-center gap-3">
                 <div className="text-sm text-brown-600 dark:text-dark-text-secondary">
                   <UserOutlined className="mr-1" />
@@ -250,17 +251,16 @@ function Header() {
                   </motion.a>
                 ))}
                 
-                {user ? (
+                {/* Admin controls hidden in production */}
+                {process.env.NODE_ENV === 'development' && user ? (
                   <div className="pt-4 border-t border-brown-200/30 dark:border-dark-card/30 space-y-3">
-                    {process.env.NODE_ENV === 'development' && (
-                      <Link
-                        href="/admin"
-                        className="block px-4 py-3 rounded-lg font-medium text-brown-600 dark:text-dark-text-secondary hover:text-orange-primary dark:hover:text-orange-300 hover:bg-orange-primary/5 transition-all duration-300"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Admin Panel
-                      </Link>
-                    )}
+                    <Link
+                      href="/admin"
+                      className="block px-4 py-3 rounded-lg font-medium text-brown-600 dark:text-dark-text-secondary hover:text-orange-primary dark:hover:text-orange-300 hover:bg-orange-primary/5 transition-all duration-300"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Admin Panel
+                    </Link>
                     <button
                       onClick={() => {
                         logout()
@@ -271,7 +271,7 @@ function Header() {
                       Đăng xuất
                     </button>
                   </div>
-                ) : (
+                ) : process.env.NODE_ENV === 'development' ? (
                   <div className="pt-4 border-t border-brown-200/30 dark:border-dark-card/30">
                     <Link
                       href="/login"
@@ -281,7 +281,7 @@ function Header() {
                       Đăng nhập
                     </Link>
                   </div>
-                )}
+                ) : null}
               </div>
             </div>
           </motion.div>
