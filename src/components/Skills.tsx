@@ -22,7 +22,6 @@ function Skills() {
         { name: 'Node.js', level: 60 },
         { name: 'Express.js', level: 60 },
         { name: 'MongoDB', level: 60 },
-        { name: 'PostgreSQL', level: 60 },
         { name: 'REST API', level: 70 },
       ]
     },
