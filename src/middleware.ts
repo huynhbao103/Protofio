@@ -32,12 +32,14 @@ export function middleware(request: NextRequest) {
       )
     }
 
-    // Chặn profile APIs (admin only)
+    // Cho phép đọc profile công khai (GET), chặn các thao tác ghi trong production
     if (pathname.startsWith('/api/profile')) {
-      return new NextResponse(
-        JSON.stringify({ error: 'Profile API not available in production' }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
-      )
+      if (request.method !== 'GET') {
+        return new NextResponse(
+          JSON.stringify({ error: 'Profile write API not available in production' }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        )
+      }
     }
   }
 
