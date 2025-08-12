@@ -243,7 +243,7 @@ function Contact() {
                 <Input
                   placeholder="Nhập họ và tên của bạn"
                   size="large"
-                  className="rounded-lg"
+                  className="rounded-lg bg-cream-primary dark:bg-dark-card border border-brown-300/40 dark:border-orange-500/20 text-brown-700 dark:text-dark-text placeholder:text-brown-400 dark:placeholder:text-dark-text-secondary"
                 />
               </Form.Item>
 
@@ -258,7 +258,7 @@ function Contact() {
                 <Input
                   placeholder="Nhập địa chỉ email của bạn"
                   size="large"
-                  className="rounded-lg"
+                  className="rounded-lg bg-cream-primary dark:bg-dark-card border border-brown-300/40 dark:border-orange-500/20 text-brown-700 dark:text-dark-text placeholder:text-brown-400 dark:placeholder:text-dark-text-secondary"
                 />
               </Form.Item>
 
@@ -270,7 +270,7 @@ function Contact() {
                 <Input
                   placeholder="Chủ đề tin nhắn"
                   size="large"
-                  className="rounded-lg"
+                  className="rounded-lg bg-cream-primary dark:bg-dark-card border border-brown-300/40 dark:border-orange-500/20 text-brown-700 dark:text-dark-text placeholder:text-brown-400 dark:placeholder:text-dark-text-secondary"
                 />
               </Form.Item>
 
@@ -282,7 +282,7 @@ function Contact() {
                 <Input.TextArea
                   placeholder="Nội dung tin nhắn..."
                   rows={5}
-                  className="rounded-lg"
+                  className="rounded-lg bg-cream-primary dark:bg-dark-card border border-brown-300/40 dark:border-orange-500/20 text-brown-700 dark:text-dark-text placeholder:text-brown-400 dark:placeholder:text-dark-text-secondary"
                 />
               </Form.Item>
 

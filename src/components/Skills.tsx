@@ -8,10 +8,10 @@ function Skills() {
     {
       title: 'Frontend',
       skills: [
-        { name: 'React', level: 90 },
+        { name: 'React', level: 80 },
         { name: 'Next.js', level: 85 },
         { name: 'TypeScript', level: 80 },
-        { name: 'JavaScript', level: 70 },
+        { name: 'JavaScript', level: 60 },
         { name: 'HTML/CSS', level: 90 },
         { name: 'Tailwind CSS', level: 85 },
       ]
@@ -21,15 +21,14 @@ function Skills() {
       skills: [
         { name: 'Node.js', level: 60 },
         { name: 'Express.js', level: 60 },
-        { name: 'MongoDB', level: 60 },
-        { name: 'REST API', level: 70 },
+        { name: 'MongoDB', level: 80 },
+        { name: 'REST API', level: 60 },
       ]
     },
     {
       title: 'Tools & Others',
       skills: [
         { name: 'GitHub', level: 80 },
-        { name: 'Figma', level: 70 },
         { name: 'AI tools', level: 80 },
       ]
     }

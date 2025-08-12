@@ -73,7 +73,7 @@ function Header() {
       transition={{ duration: 0.6, ease: "easeOut" }}
       className="w-full backdrop-blur-md bg-cream-primary/90 dark:bg-dark-bg/90 shadow-lg border-b border-brown-200/30 dark:border-dark-card/30 sticky top-0 z-50"
     >
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-3 md:py-4 lg:py-6">
         <div className="flex justify-between items-center max-w-6xl mx-auto">
           <motion.div
             initial={{ x: -50, opacity: 0 }}
@@ -81,7 +81,7 @@ function Header() {
             transition={{ delay: 0.2, duration: 0.5 }}
           >
             <Link href="/" className="group">
-              <h1 className="text-4xl font-bold text-brown-primary dark:text-dark-text group-hover:text-orange-primary transition-all duration-300">
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-brown-primary dark:text-dark-text group-hover:text-orange-primary transition-all duration-300">
                 Huỳnh Quốc Bảo
               </h1>
               <p className="text-brown-600 dark:text-dark-text-secondary mt-1 text-sm font-medium">
@@ -215,7 +215,7 @@ function Header() {
             transition={{ duration: 0.3 }}
             className="lg:hidden bg-cream-primary/95 dark:bg-dark-bg/95 backdrop-blur-md border-t border-brown-200/30 dark:border-dark-card/30"
           >
-            <div className="container mx-auto px-4 py-6">
+            <div className="container mx-auto px-4 py-4">
               <div className="flex flex-col space-y-4">
                 {[
                   { id: 'home', label: '01. Home', href: '#home' },
