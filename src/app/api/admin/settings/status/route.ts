@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import mongoose from 'mongoose'
 
+export const dynamic = 'force-dynamic'
+
 // Helper function to check if email is configured
 function checkEmailConfigured(): boolean {
   return !!(process.env.SMTP_USER && process.env.SMTP_PASS)

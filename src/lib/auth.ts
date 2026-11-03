@@ -2,10 +2,12 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { NextRequest } from 'next/server'
 
-const JWT_SECRET = process.env.JWT_SECRET!
-
-if (!JWT_SECRET) {
-  throw new Error('Please define the JWT_SECRET environment variable')
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET
+  if (!secret) {
+    throw new Error('Please define the JWT_SECRET environment variable')
+  }
+  return secret
 }
 
 export interface TokenPayload {
@@ -16,13 +18,13 @@ export interface TokenPayload {
 
 // Generate JWT token
 export function generateToken(payload: TokenPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' })
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: '7d' })
 }
 
 // Verify JWT token
 export function verifyToken(token: string): TokenPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as TokenPayload
+    return jwt.verify(token, getJwtSecret()) as TokenPayload
   } catch (error) {
     return null
   }
