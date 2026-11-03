@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import mongoose from 'mongoose'
 
+export const dynamic = 'force-dynamic'
+
+
 // Settings Schema
 const SettingsSchema = new mongoose.Schema({
   siteName: { type: String, default: 'Huỳnh Quốc Bảo Portfolio' },
