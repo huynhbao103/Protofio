@@ -35,6 +35,15 @@ export async function GET(
       )
     }
 
+    const token = request.cookies.get('auth-token')?.value
+    const isAdmin = Boolean(token && token.startsWith('demo-jwt-token-'))
+    if ((project as any).status !== 'ACTIVE' && !isAdmin) {
+      return NextResponse.json(
+        { success: false, error: 'Project not found' },
+        { status: 404 }
+      )
+    }
+
     console.log(`✅ Found project: ${(project as any).name}`)
 
     return NextResponse.json({
@@ -67,7 +76,18 @@ export async function PUT(
 
     const { id } = params
     const body = await request.json()
-    const { name, description, technologies, githubUrl, liveUrl, priority, status } = body
+    const {
+      name,
+      description,
+      nameEn,
+      descriptionEn,
+      technologies,
+      githubUrl,
+      liveUrl,
+      priority,
+      status,
+      inactiveReason,
+    } = body
 
     console.log('✏️ Updating project:', id, body)
 
@@ -93,17 +113,34 @@ export async function PUT(
     const updateData: any = {}
     if (name) updateData.name = name
     if (description) updateData.description = description
+    if (nameEn !== undefined) updateData.nameEn = nameEn
+    if (descriptionEn !== undefined) updateData.descriptionEn = descriptionEn
     if (techArray) updateData.technologies = techArray
     if (githubUrl !== undefined) updateData.githubUrl = githubUrl
     if (liveUrl !== undefined) updateData.liveUrl = liveUrl
     if (priority !== undefined) updateData.priority = parseInt(priority)
-    if (status) updateData.status = status
+
+    if (status !== undefined) {
+      const nextStatus = status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE'
+      const reason =
+        typeof inactiveReason === 'string' ? inactiveReason.trim() : ''
+      if (nextStatus === 'INACTIVE' && reason.length < 3) {
+        return NextResponse.json(
+          { success: false, error: 'Inactive projects require a reason (min 3 characters)' },
+          { status: 400 }
+        )
+      }
+      updateData.status = nextStatus
+      updateData.inactiveReason =
+        nextStatus === 'INACTIVE' ? reason : ''
+    }
+
     updateData.updatedAt = new Date()
 
-    // Find and update project
+    // Find and update project ($set so new bilingual fields are persisted)
     const project = await Project.findByIdAndUpdate(
       id,
-      updateData,
+      { $set: updateData },
       { new: true, runValidators: true }
     ).populate('createdBy', 'username')
 

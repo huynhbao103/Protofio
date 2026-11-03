@@ -10,6 +10,9 @@ interface ProfileData {
   name: string
   title: string
   bio: string
+  titleEn?: string
+  bioEn?: string
+  locationEn?: string
   avatar: string
   email: string
   phone?: string
@@ -39,9 +42,12 @@ function ProfileManager() {
             name: result.data.name,
             title: result.data.title,
             bio: result.data.bio,
+            titleEn: result.data.titleEn || '',
+            bioEn: result.data.bioEn || '',
+            locationEn: result.data.locationEn || '',
             email: result.data.email,
             phone: result.data.phone,
-            location: result.data.location
+            location: result.data.location,
           })
         }
       }
@@ -58,14 +64,14 @@ function ProfileManager() {
 
       const response = await fetch('/api/profile/avatar', {
         method: 'POST',
-        body: formData
+        body: formData,
       })
 
       const result = await response.json()
-      
+
       if (result.success) {
         message.success('Avatar đã được cập nhật!')
-        setProfile(prev => prev ? { ...prev, avatar: result.data.avatar } : null)
+        setProfile((prev) => (prev ? { ...prev, avatar: result.data.avatar } : null))
       } else {
         message.error(result.error || 'Lỗi upload avatar')
       }
@@ -81,7 +87,7 @@ function ProfileManager() {
     try {
       const profileData = {
         ...values,
-        skills: profile?.skills || []
+        skills: profile?.skills || [],
       }
 
       const response = await fetch('/api/profile', {
@@ -89,11 +95,11 @@ function ProfileManager() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(profileData)
+        body: JSON.stringify(profileData),
       })
 
       const result = await response.json()
-      
+
       if (result.success) {
         message.success('Profile đã được cập nhật!')
         setProfile(result.data)
@@ -117,15 +123,14 @@ function ProfileManager() {
 
   const removeSkill = (skillToRemove: string) => {
     if (profile) {
-      const newSkills = profile.skills.filter(skill => skill !== skillToRemove)
+      const newSkills = profile.skills.filter((skill) => skill !== skillToRemove)
       setProfile({ ...profile, skills: newSkills })
     }
   }
 
   return (
-    <Card title="👤 Quản lý Profile" className="max-w-4xl mx-auto">
+    <Card title="👤 Quản lý Profile (VI / EN)" className="max-w-4xl mx-auto">
       <div className="grid md:grid-cols-3 gap-6">
-        {/* Avatar Section */}
         <div className="text-center">
           <div className="mb-4">
             <Avatar
@@ -141,7 +146,7 @@ function ProfileManager() {
             showUploadList={false}
             disabled={uploading}
           >
-            <Button 
+            <Button
               icon={<UploadOutlined />}
               loading={uploading}
               className="border-orange-primary text-orange-primary hover:bg-orange-50"
@@ -149,46 +154,56 @@ function ProfileManager() {
               {uploading ? 'Đang upload...' : 'Cập nhật Avatar'}
             </Button>
           </Upload>
-          <p className="text-xs text-gray-500 mt-2">
-            JPG, PNG (Max 5MB)
-          </p>
+          <p className="text-xs text-gray-500 mt-2">JPG, PNG (Max 5MB)</p>
         </div>
 
-        {/* Form Section */}
         <div className="md:col-span-2">
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleSubmit}
-            className="space-y-4"
-          >
-            <div className="grid md:grid-cols-2 gap-4">
-              <Form.Item
-                label="Tên"
-                name="name"
-                rules={[{ required: true, message: 'Vui lòng nhập tên' }]}
-              >
-                <Input placeholder="Nhập tên của bạn" />
-              </Form.Item>
+          <Form form={form} layout="vertical" onFinish={handleSubmit} className="space-y-4">
+            <Form.Item
+              label="Tên"
+              name="name"
+              rules={[{ required: true, message: 'Vui lòng nhập tên' }]}
+            >
+              <Input placeholder="Nhập tên của bạn" />
+            </Form.Item>
 
-              <Form.Item
-                label="Chức danh"
-                name="title"
-                rules={[{ required: true, message: 'Vui lòng nhập chức danh' }]}
-              >
-                <Input placeholder="VD: Frontend Developer" />
-              </Form.Item>
-            </div>
+            <Divider orientation="left" plain>
+              Tiếng Việt
+            </Divider>
 
             <Form.Item
-              label="Giới thiệu"
-              name="bio"
+              label="Chức danh (VI)"
+              name="title"
+              rules={[{ required: true, message: 'Vui lòng nhập chức danh' }]}
             >
-              <Input.TextArea 
-                rows={3} 
-                placeholder="Viết giới thiệu ngắn về bản thân..."
-              />
+              <Input placeholder="VD: Frontend Developer" />
             </Form.Item>
+
+            <Form.Item label="Giới thiệu (VI)" name="bio">
+              <Input.TextArea rows={3} placeholder="Viết giới thiệu ngắn bằng tiếng Việt..." />
+            </Form.Item>
+
+            <Form.Item label="Địa điểm (VI)" name="location">
+              <Input placeholder="VD: Phường Tân Phú, TP. Hồ Chí Minh" />
+            </Form.Item>
+
+            <Divider orientation="left" plain>
+              English
+            </Divider>
+
+            <Form.Item label="Title (EN)" name="titleEn">
+              <Input placeholder="e.g. Frontend Developer" />
+            </Form.Item>
+
+            <Form.Item label="Bio (EN)" name="bioEn">
+              <Input.TextArea rows={3} placeholder="Short introduction in English..." />
+            </Form.Item>
+
+            <Form.Item label="Location (EN)" name="locationEn">
+              <Input placeholder="e.g. Tan Phu Ward, Ho Chi Minh City" />
+            </Form.Item>
+
+            <Divider />
 
             <div className="grid md:grid-cols-2 gap-4">
               <Form.Item
@@ -196,72 +211,51 @@ function ProfileManager() {
                 name="email"
                 rules={[
                   { required: true, message: 'Vui lòng nhập email' },
-                  { type: 'email', message: 'Email không hợp lệ' }
+                  { type: 'email', message: 'Email không hợp lệ' },
                 ]}
               >
                 <Input placeholder="email@example.com" />
               </Form.Item>
 
-              <Form.Item
-                label="Số điện thoại"
-                name="phone"
-              >
+              <Form.Item label="Số điện thoại" name="phone">
                 <Input placeholder="0123456789" />
               </Form.Item>
             </div>
 
-            <Form.Item
-              label="Địa điểm"
-              name="location"
-            >
-              <Input placeholder="VD: TP.HCM, Việt Nam" />
-            </Form.Item>
-
-            <Divider />
-
-            {/* Skills Section */}
             <div>
               <label className="block text-sm font-medium mb-2">Kỹ năng</label>
-              <div className="flex gap-2 mb-3">
+              <Space.Compact className="w-full mb-3">
                 <Input
-                  placeholder="Thêm kỹ năng mới..."
                   value={skillInput}
                   onChange={(e) => setSkillInput(e.target.value)}
+                  placeholder="Thêm kỹ năng"
                   onPressEnter={addSkill}
                 />
-                <Button onClick={addSkill} disabled={!skillInput.trim()}>
+                <Button type="primary" onClick={addSkill}>
                   Thêm
                 </Button>
-              </div>
-              
+              </Space.Compact>
               <div className="flex flex-wrap gap-2">
-                {profile?.skills?.map((skill, index) => (
-                  <Tag
-                    key={index}
-                    closable
-                    onClose={() => removeSkill(skill)}
-                    color="orange"
-                  >
+                {(profile?.skills || []).map((skill) => (
+                  <Tag key={skill} closable onClose={() => removeSkill(skill)} color="orange">
                     {skill}
                   </Tag>
                 ))}
               </div>
             </div>
 
-            <Divider />
-
-            <div className="flex justify-end">
+            <Form.Item className="mb-0 pt-4">
               <Button
                 type="primary"
                 htmlType="submit"
-                loading={loading}
                 icon={<SaveOutlined />}
+                loading={loading}
                 size="large"
-                className="bg-orange-primary hover:bg-orange-600"
+                className="bg-orange-primary hover:bg-brown-primary border-none w-full"
               >
-                Lưu Profile
+                Lưu Profile (VI + EN)
               </Button>
-            </div>
+            </Form.Item>
           </Form>
         </div>
       </div>

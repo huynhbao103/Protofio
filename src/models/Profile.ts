@@ -4,6 +4,9 @@ export interface IProfile extends Document {
   name: string
   title: string
   bio: string
+  titleEn?: string
+  bioEn?: string
+  locationEn?: string
   avatar: string // Cloudinary URL
   email: string
   phone?: string
@@ -18,12 +21,18 @@ export interface IProfile extends Document {
     company: string
     period: string
     description: string
+    titleEn?: string
+    companyEn?: string
+    descriptionEn?: string
   }[]
   education: {
     degree: string
     institution: string
     period: string
     description?: string
+    degreeEn?: string
+    institutionEn?: string
+    descriptionEn?: string
   }[]
   createdAt: Date
   updatedAt: Date
@@ -49,6 +58,19 @@ const ProfileSchema: Schema = new Schema(
       type: String,
       maxlength: [1000, 'Bio cannot be more than 1000 characters'],
       default: 'Passionate frontend developer creating amazing web experiences.'
+    },
+    titleEn: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'English title cannot be more than 200 characters'],
+    },
+    bioEn: {
+      type: String,
+      maxlength: [1000, 'English bio cannot be more than 1000 characters'],
+    },
+    locationEn: {
+      type: String,
+      trim: true,
     },
     avatar: {
       type: String,
@@ -110,7 +132,10 @@ const ProfileSchema: Schema = new Schema(
       description: {
         type: String,
         trim: true
-      }
+      },
+      titleEn: { type: String, trim: true },
+      companyEn: { type: String, trim: true },
+      descriptionEn: { type: String, trim: true },
     }],
     education: [{
       degree: {
@@ -131,7 +156,10 @@ const ProfileSchema: Schema = new Schema(
       description: {
         type: String,
         trim: true
-      }
+      },
+      degreeEn: { type: String, trim: true },
+      institutionEn: { type: String, trim: true },
+      descriptionEn: { type: String, trim: true },
     }]
   },
   {

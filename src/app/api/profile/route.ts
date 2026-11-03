@@ -81,6 +81,9 @@ export async function POST(request: NextRequest) {
     if (body.name !== undefined) profile.name = body.name
     if (body.title !== undefined) profile.title = body.title
     if (body.bio !== undefined) profile.bio = body.bio
+    if (body.titleEn !== undefined) profile.titleEn = body.titleEn
+    if (body.bioEn !== undefined) profile.bioEn = body.bioEn
+    if (body.locationEn !== undefined) profile.locationEn = body.locationEn
     if (body.email !== undefined) profile.email = body.email
     if (body.phone !== undefined) profile.phone = body.phone
     if (body.location !== undefined) profile.location = body.location

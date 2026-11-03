@@ -96,9 +96,14 @@ async function apiCall<T = any>(endpoint: string, options: RequestInit = {}, ret
 
 // Project API
 export const projectApi = {
-  // Get all projects (public)
+  // Get all projects (public: ACTIVE only)
   getAll: async () => {
     return apiCall<Project[]>('/projects')
+  },
+
+  // Get all projects for admin (includes inactive)
+  getAllAdmin: async () => {
+    return apiCall<Project[]>('/projects?all=1')
   },
 
   // Get project by ID
@@ -110,10 +115,14 @@ export const projectApi = {
   create: async (data: {
     name: string
     description: string
+    nameEn?: string
+    descriptionEn?: string
     technologies: string | string[]
     githubUrl?: string
     liveUrl?: string
     priority?: number
+    status?: 'ACTIVE' | 'INACTIVE'
+    inactiveReason?: string
   }) => {
     // Ensure technologies is always an array
     const processedData = {
@@ -135,11 +144,14 @@ export const projectApi = {
   update: async (id: string, data: {
     name?: string
     description?: string
+    nameEn?: string
+    descriptionEn?: string
     technologies?: string[]
     githubUrl?: string
     liveUrl?: string
     priority?: number
-    status?: string
+    status?: 'ACTIVE' | 'INACTIVE' | string
+    inactiveReason?: string
   }) => {
     return apiCall<Project>(`/projects/${id}`, {
       method: 'PUT',

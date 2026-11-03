@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Button, Card, Input, Form, Modal, message, Popconfirm, Upload, Image, Spin, Space, Tag, Tooltip, Table, Switch, Tabs, Avatar, Divider } from 'antd'
+import { Button, Card, Input, Form, Modal, message, Popconfirm, Upload, Image, Spin, Space, Tag, Tooltip, Table, Switch, Tabs, Avatar, Divider, Radio } from 'antd'
 import type { UploadFile, RcFile } from 'antd/es/upload/interface'
 import { PlusOutlined, UploadOutlined, EyeOutlined, DeleteOutlined, EditOutlined, SettingOutlined, SearchOutlined, UserOutlined, PictureOutlined, VideoCameraOutlined, MailOutlined, DashboardOutlined, ScissorOutlined } from '@ant-design/icons'
 import { Project, ProjectFormData } from '@/types/project'
@@ -51,7 +51,7 @@ function AdminPanel() {
   const fetchProjects = async () => {
     try {
       setLoading(true)
-      const data = await projectApi.getAll()
+      const data = await projectApi.getAllAdmin()
       setProjects(data)
     } catch (error: any) {
       console.error('Error fetching projects:', error)
@@ -61,6 +61,11 @@ function AdminPanel() {
     }
   }
 
+  const normalizeStatus = (status?: string): 'ACTIVE' | 'INACTIVE' =>
+    status === 'INACTIVE' || status === 'ARCHIVED' || status === 'DRAFT'
+      ? 'INACTIVE'
+      : 'ACTIVE'
+
   const showModal = (project: Project | null = null) => {
     setEditingProject(project)
     setIsModalOpen(true)
@@ -68,19 +73,27 @@ function AdminPanel() {
       form.setFieldsValue({
         name: project.name,
         description: project.description,
+        nameEn: project.nameEn || '',
+        descriptionEn: project.descriptionEn || '',
         technologies: project.technologies.join(', '),
         githubUrl: project.githubUrl,
         liveUrl: project.liveUrl,
         priority: project.priority,
+        status: normalizeStatus(project.status),
+        inactiveReason: project.inactiveReason || '',
       })
     } else {
       form.setFieldsValue({
         name: '',
         description: '',
+        nameEn: '',
+        descriptionEn: '',
         technologies: '',
         githubUrl: '',
         liveUrl: '',
         priority: undefined,
+        status: 'ACTIVE',
+        inactiveReason: '',
       })
     }
   }
@@ -94,10 +107,23 @@ function AdminPanel() {
   const handleSubmit = async (values: ProjectFormData) => {
     try {
       console.log('Form values received:', values)
-      
-      // Send raw form values to API, let API handle processing
-      const projectData = { ...values }
-      
+
+      const status: 'ACTIVE' | 'INACTIVE' =
+        values.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE'
+      const inactiveReason =
+        status === 'INACTIVE' ? (values.inactiveReason || '').trim() : ''
+
+      if (status === 'INACTIVE' && inactiveReason.length < 3) {
+        message.error('Inactive phải có lý do (ít nhất 3 ký tự)!')
+        return
+      }
+
+      const projectData: ProjectFormData = {
+        ...values,
+        status,
+        inactiveReason: status === 'INACTIVE' ? inactiveReason : '',
+      }
+
       console.log('Sending project data to API:', projectData)
 
       if (editingProject) {
@@ -143,11 +169,16 @@ function AdminPanel() {
   }
 
   // Filter projects based on search
-  const filteredProjects = projects.filter(project =>
-    project.name.toLowerCase().includes(searchText.toLowerCase()) ||
-    project.description.toLowerCase().includes(searchText.toLowerCase()) ||
-    project.technologies.some(tech => tech.toLowerCase().includes(searchText.toLowerCase()))
-  )
+  const filteredProjects = projects.filter(project => {
+    const q = searchText.toLowerCase()
+    return (
+      project.name.toLowerCase().includes(q) ||
+      project.description.toLowerCase().includes(q) ||
+      (project.nameEn || '').toLowerCase().includes(q) ||
+      (project.descriptionEn || '').toLowerCase().includes(q) ||
+      project.technologies.some(tech => tech.toLowerCase().includes(q))
+    )
+  })
 
   const showMediaManager = (project: Project) => {
     setSelectedProject(project)
@@ -363,8 +394,21 @@ function AdminPanel() {
                           )
                         }
                         title={
-                          <div className="text-lg font-bold text-brown-primary dark:text-dark-text truncate">
-                            {project.name}
+                          <div className="text-lg font-bold text-brown-primary dark:text-dark-text">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="truncate">{project.name}</span>
+                              <Tag
+                                color={normalizeStatus(project.status) === 'ACTIVE' ? 'success' : 'default'}
+                                className="shrink-0 m-0"
+                              >
+                                {normalizeStatus(project.status)}
+                              </Tag>
+                            </div>
+                            {project.nameEn && (
+                              <div className="text-xs font-medium text-brown-500 dark:text-dark-text-secondary truncate mt-0.5">
+                                EN: {project.nameEn}
+                              </div>
+                            )}
                           </div>
                         }
                         extra={
@@ -405,8 +449,19 @@ function AdminPanel() {
                         }
                       >
                         <div className="space-y-3">
+                          {normalizeStatus(project.status) === 'INACTIVE' && project.inactiveReason && (
+                            <div className="text-xs text-amber-800 dark:text-amber-200 bg-amber-50 dark:bg-amber-900/20 border border-amber-200/60 dark:border-amber-700/40 rounded-lg px-2.5 py-2">
+                              <span className="font-semibold">Lý do inactive: </span>
+                              {project.inactiveReason}
+                            </div>
+                          )}
                           <p className="text-brown-600 dark:text-dark-text-secondary text-sm leading-relaxed line-clamp-3">
-                            {project.description}
+                            <span className="block">{project.description}</span>
+                            {project.descriptionEn && (
+                              <span className="block mt-2 text-xs opacity-80 border-t border-brown-200/40 pt-2">
+                                EN: {project.descriptionEn}
+                              </span>
+                            )}
                           </p>
                           
                           {project.technologies.length > 0 && (
@@ -529,17 +584,33 @@ function AdminPanel() {
                         />
                       </Form.Item>
                       
-                      <Form.Item label="Tiêu đề" name="title">
+                      <Form.Item label="Tiêu đề (VI)" name="title">
                         <Input 
-                          placeholder="Ví dụ: Full Stack Developer"
+                          placeholder="Ví dụ: Frontend Developer"
+                          size="large"
+                          style={{ borderRadius: '8px' }}
+                        />
+                      </Form.Item>
+
+                      <Form.Item label="Title (EN)" name="titleEn">
+                        <Input 
+                          placeholder="e.g. Frontend Developer"
                           size="large"
                           style={{ borderRadius: '8px' }}
                         />
                       </Form.Item>
                       
-                      <Form.Item label="Mô tả ngắn" name="bio">
+                      <Form.Item label="Mô tả ngắn (VI)" name="bio">
                         <Input.TextArea 
-                          placeholder="Mô tả ngắn về bản thân"
+                          placeholder="Mô tả ngắn bằng tiếng Việt"
+                          rows={3}
+                          style={{ borderRadius: '8px' }}
+                        />
+                      </Form.Item>
+
+                      <Form.Item label="Short bio (EN)" name="bioEn">
+                        <Input.TextArea 
+                          placeholder="Short bio in English"
                           rows={3}
                           style={{ borderRadius: '8px' }}
                         />
@@ -587,7 +658,7 @@ function AdminPanel() {
         open={isModalOpen}
         onCancel={handleCancel}
         footer={null}
-        width={700}
+        width={820}
         className="custom-modal"
       >
         <Form
@@ -596,8 +667,12 @@ function AdminPanel() {
           onFinish={handleSubmit}
           className="mt-4"
         >
+          <Divider orientation="left" plain>
+            Nội dung tiếng Việt
+          </Divider>
+
           <Form.Item
-            label="Tên dự án"
+            label="Tên dự án (VI)"
             name="name"
             rules={[
               { required: true, message: 'Vui lòng nhập tên dự án!' },
@@ -606,27 +681,59 @@ function AdminPanel() {
             ]}
           >
             <Input
-              placeholder="Nhập tên dự án"
+              placeholder="Nhập tên dự án bằng tiếng Việt"
               size="large"
               style={{ borderRadius: '8px' }}
             />
           </Form.Item>
 
           <Form.Item
-            label="Mô tả"
+            label="Mô tả (VI)"
             name="description"
             rules={[
               { required: true, message: 'Vui lòng nhập mô tả dự án!' },
               { min: 10, message: 'Mô tả phải có ít nhất 10 ký tự!' },
-              { max: 500, message: 'Mô tả không được quá 500 ký tự!' }
+              { max: 1000, message: 'Mô tả không được quá 1000 ký tự!' }
             ]}
           >
             <Input.TextArea
-              placeholder="Mô tả chi tiết về dự án, tính năng, công nghệ sử dụng..."
+              placeholder="Mô tả chi tiết bằng tiếng Việt..."
               rows={4}
               style={{ borderRadius: '8px' }}
             />
           </Form.Item>
+
+          <Divider orientation="left" plain>
+            English content
+          </Divider>
+
+          <Form.Item
+            label="Project name (EN)"
+            name="nameEn"
+            rules={[{ max: 100, message: 'Max 100 characters' }]}
+          >
+            <Input
+              placeholder="Enter project name in English"
+              size="large"
+              style={{ borderRadius: '8px' }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Description (EN)"
+            name="descriptionEn"
+            rules={[{ max: 1000, message: 'Max 1000 characters' }]}
+          >
+            <Input.TextArea
+              placeholder="Detailed project description in English..."
+              rows={4}
+              style={{ borderRadius: '8px' }}
+            />
+          </Form.Item>
+
+          <Divider orientation="left" plain>
+            Thông tin chung
+          </Divider>
 
           <Form.Item
             label="Công nghệ sử dụng"
@@ -729,6 +836,46 @@ function AdminPanel() {
               min={0}
               max={100}
             />
+          </Form.Item>
+
+          <Form.Item
+            label="Trạng thái hiển thị"
+            name="status"
+            rules={[{ required: true, message: 'Chọn trạng thái!' }]}
+            initialValue="ACTIVE"
+          >
+            <Radio.Group size="large">
+              <Radio.Button value="ACTIVE">Active</Radio.Button>
+              <Radio.Button value="INACTIVE">Inactive</Radio.Button>
+            </Radio.Group>
+          </Form.Item>
+
+          <Form.Item
+            noStyle
+            shouldUpdate={(prev, cur) => prev.status !== cur.status}
+          >
+            {({ getFieldValue }) =>
+              getFieldValue('status') === 'INACTIVE' ? (
+                <Form.Item
+                  label="Lý do inactive"
+                  name="inactiveReason"
+                  rules={[
+                    { required: true, message: 'Inactive phải có lý do!' },
+                    { min: 3, message: 'Lý do ít nhất 3 ký tự!' },
+                    { max: 500, message: 'Tối đa 500 ký tự!' },
+                  ]}
+                  extra="Project inactive sẽ không hiện trên portfolio công khai."
+                >
+                  <Input.TextArea
+                    placeholder="VD: Dự án cũ, đang refactor, thay bằng phiên bản mới..."
+                    rows={3}
+                    style={{ borderRadius: '8px' }}
+                    maxLength={500}
+                    showCount
+                  />
+                </Form.Item>
+              ) : null
+            }
           </Form.Item>
 
           <Form.Item className="mb-0 pt-4">

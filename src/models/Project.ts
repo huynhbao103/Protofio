@@ -39,11 +39,19 @@ export interface IProjectVideo {
 export interface IProject extends Document {
   name: string
   description: string
+  /** English name (optional). Falls back to `name` on public site. */
+  nameEn?: string
+  /** English description (optional). Falls back to `description` on public site. */
+  descriptionEn?: string
   technologies: string[]
   githubUrl?: string
   liveUrl?: string
-  status: 'ACTIVE' | 'ARCHIVED' | 'DRAFT'
+  status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED' | 'DRAFT'
+  /** Required when status is INACTIVE */
+  inactiveReason?: string
   priority: number
+  /** Path of the selected main media (image or video) */
+  mainImage?: string
   images: IProjectImage[]
   videos: IProjectVideo[]
   createdBy: mongoose.Types.ObjectId
@@ -100,6 +108,15 @@ const ProjectSchema: Schema = new Schema(
       required: [true, 'Please provide a project description'],
       maxlength: [1000, 'Description cannot be more than 1000 characters'],
     },
+    nameEn: {
+      type: String,
+      trim: true,
+      maxlength: [100, 'English project name cannot be more than 100 characters'],
+    },
+    descriptionEn: {
+      type: String,
+      maxlength: [1000, 'English description cannot be more than 1000 characters'],
+    },
     technologies: {
       type: [String],
       required: [true, 'Please provide at least one technology'],
@@ -133,14 +150,23 @@ const ProjectSchema: Schema = new Schema(
     },
     status: {
       type: String,
-      enum: ['ACTIVE', 'ARCHIVED', 'DRAFT'],
+      enum: ['ACTIVE', 'INACTIVE', 'ARCHIVED', 'DRAFT'],
       default: 'ACTIVE',
+    },
+    inactiveReason: {
+      type: String,
+      trim: true,
+      maxlength: [500, 'Inactive reason cannot be more than 500 characters'],
     },
     priority: {
       type: Number,
       default: 0,
       min: 0,
       max: 100,
+    },
+    mainImage: {
+      type: String,
+      trim: true,
     },
     images: [ProjectImageSchema],
     videos: [ProjectVideoSchema],
@@ -159,6 +185,11 @@ function arrayLimit(val: string[]) {
   return val.length >= 1
 }
 
-export default mongoose.models.Project || mongoose.model<IProject>('Project', ProjectSchema)
+// Next.js HMR keeps the first-compiled schema; drop & re-register so enum/fields update.
+if (mongoose.models.Project) {
+  mongoose.deleteModel('Project')
+}
+
+export default mongoose.model<IProject>('Project', ProjectSchema)
 
 

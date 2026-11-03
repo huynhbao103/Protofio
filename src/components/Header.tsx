@@ -7,43 +7,51 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from 'antd'
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import { useAuth } from '@/contexts/AuthContext'
+import { useI18n } from '@/contexts/I18nContext'
+import { isLocalClient } from '@/lib/isLocal'
+import LanguageSwitcher from './LanguageSwitcher'
+import { scrollToId } from '@/lib/scroll'
 
 function Header() {
   const [dark, setDark] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [isLocal, setIsLocal] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('home')
   const pathname = usePathname()
   const { user, logout } = useAuth()
+  const { t } = useI18n()
 
-  // Fix hydration issue - Default to Light Mode
+  const navItems = [
+    { id: 'home', num: '01', label: t.nav.home },
+    { id: 'about', num: '02', label: t.nav.about },
+    { id: 'value', num: '03', label: t.nav.value },
+    { id: 'skills', num: '04', label: t.nav.skills },
+    { id: 'projects', num: '05', label: t.nav.projects },
+    { id: 'contact', num: '06', label: t.nav.contact },
+  ]
+
   useEffect(() => {
     setMounted(true)
-    if (typeof window !== 'undefined') {
-      // Check localStorage first, then default to light mode
-      const savedTheme = localStorage.getItem('theme')
-      if (savedTheme) {
-        setDark(savedTheme === 'dark')
-      } else {
-        // Default to light mode instead of system preference
-        setDark(false)
-        localStorage.setItem('theme', 'light')
-      }
+    setIsLocal(isLocalClient())
+    const savedTheme = localStorage.getItem('theme')
+    if (savedTheme) {
+      setDark(savedTheme === 'dark')
+    } else {
+      setDark(false)
+      localStorage.setItem('theme', 'light')
     }
   }, [])
 
-  // Scroll spy effect
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['home', 'about', 'skills', 'projects', 'contact']
+      const sections = ['home', 'about', 'value', 'skills', 'projects', 'contact']
       const scrollPosition = window.scrollY + 100
-
       for (const section of sections) {
         const element = document.getElementById(section)
         if (element) {
           const offsetTop = element.offsetTop
           const offsetHeight = element.offsetHeight
-          
           if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
             setActiveSection(section)
             break
@@ -51,7 +59,6 @@ function Header() {
         }
       }
     }
-
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
@@ -67,222 +74,161 @@ function Header() {
   }, [dark])
 
   return (
-    <motion.header 
+    <motion.header
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
       className="w-full backdrop-blur-md bg-cream-primary/90 dark:bg-dark-bg/90 shadow-lg border-b border-brown-200/30 dark:border-dark-card/30 sticky top-0 z-50"
     >
-      <div className="container mx-auto px-4 py-3 md:py-4 lg:py-6">
-        <div className="flex justify-between items-center max-w-6xl mx-auto">
-          <motion.div
-            initial={{ x: -50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-          >
-            <Link href="/" className="group">
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-brown-primary dark:text-dark-text group-hover:text-orange-primary transition-all duration-300">
-                Huỳnh Quốc Bảo
-              </h1>
-              <p className="text-brown-600 dark:text-dark-text-secondary mt-1 text-sm font-medium">
-                Frontend Developer
-              </p>
-            </Link>
-          </motion.div>
+      <div className="container mx-auto px-4 py-3 md:py-4">
+        <div className="flex justify-between items-center max-w-6xl mx-auto gap-4">
+          <Link href="/" className="group shrink-0">
+            <h1 className="text-xl md:text-2xl font-bold text-brown-primary dark:text-dark-text group-hover:text-orange-primary transition-all duration-300">
+              {t.common.name}
+            </h1>
+            <p className="text-brown-600 dark:text-dark-text-secondary mt-0.5 text-xs sm:text-sm font-medium">
+              {t.common.title}
+            </p>
+          </Link>
 
-          <motion.div 
-            initial={{ x: 50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            className="flex items-center gap-6"
-          >
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-8">
-              {[
-                { id: 'home', label: '01. Home', href: '#home' },
-                { id: 'about', label: '02. About', href: '#about' },
-                { id: 'skills', label: '03. Skills', href: '#skills' },
-                { id: 'projects', label: '04. Projects', href: '#projects' },
-                { id: 'contact', label: '05. Contact', href: '#contact' },
-              ].map((item, index) => (
-                <motion.a
-                  key={item.id}
-                  href={item.href}
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 * index, duration: 0.5 }}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    const element = document.getElementById(item.id)
-                    if (element) {
-                      element.scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'start' 
-                      })
-                    }
-                  }}
-                  className="group relative px-4 py-2 text-sm font-mono font-medium text-brown-600 dark:text-dark-text-secondary hover:text-orange-primary dark:hover:text-orange-300 transition-all duration-300 cursor-pointer"
-                >
-                  <span className="relative z-10">{item.label}</span>
-                  <div className="absolute inset-0 rounded-lg bg-orange-primary/5 dark:bg-orange-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-orange-primary group-hover:w-full transition-all duration-300" />
-                </motion.a>
-              ))}
-              
-              {user && process.env.NODE_ENV === 'development' && (
-                <div className="flex items-center gap-2 ml-4">
-                  <Link
-                    href="/admin"
-                    className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-                      pathname === '/admin' 
-                        ? 'bg-brown-primary/10 dark:bg-orange-primary/20 text-brown-primary dark:text-orange-300' 
-                        : 'text-brown-600 dark:text-dark-text-secondary hover:text-brown-primary dark:hover:text-orange-300 hover:bg-brown-primary/5 dark:hover:bg-orange-primary/10'
+          <div className="flex items-center gap-3 shrink-0">
+            <nav className="hidden xl:flex items-center gap-1">
+              {navItems.map((item, index) => {
+                const active = activeSection === item.id
+                return (
+                  <motion.a
+                    key={item.id}
+                    href={`#${item.id}`}
+                    initial={{ opacity: 0, y: -12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.04 * index, duration: 0.35 }}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      scrollToId(item.id)
+                    }}
+                    className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-medium whitespace-nowrap transition-colors duration-200 cursor-pointer ${
+                      active
+                        ? 'bg-orange-primary/10 text-orange-primary dark:text-orange-300'
+                        : 'text-brown-600 dark:text-dark-text-secondary hover:text-orange-primary hover:bg-orange-primary/5'
                     }`}
                   >
-                    📊 Admin
-                  </Link>
-                </div>
+                    <span className="w-5 font-mono text-xs tabular-nums opacity-70">
+                      {item.num}
+                    </span>
+                    <span>{item.label}</span>
+                  </motion.a>
+                )
+              })}
+
+              {isLocal && user && (
+                <Link
+                  href="/admin"
+                  className={`ml-1 inline-flex items-center h-9 px-3 rounded-lg text-sm font-medium transition-colors ${
+                    pathname === '/admin'
+                      ? 'bg-brown-primary/10 text-brown-primary dark:text-orange-300'
+                      : 'text-brown-600 dark:text-dark-text-secondary hover:text-orange-primary'
+                  }`}
+                >
+                  {t.nav.admin}
+                </Link>
               )}
             </nav>
 
-            {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg text-brown-600 dark:text-dark-text-secondary hover:text-orange-primary dark:hover:text-orange-300 transition-colors"
+              className="xl:hidden p-2 rounded-lg text-brown-600 dark:text-dark-text-secondary"
+              aria-label="Menu"
             >
               <div className="w-6 h-6 flex flex-col justify-center space-y-1">
-                <motion.div
-                  animate={mobileMenuOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }}
-                  className="w-full h-0.5 bg-current transition-all duration-300"
-                />
-                <motion.div
-                  animate={mobileMenuOpen ? { opacity: 0 } : { opacity: 1 }}
-                  className="w-full h-0.5 bg-current transition-all duration-300"
-                />
-                <motion.div
-                  animate={mobileMenuOpen ? { rotate: -45, y: -8 } : { rotate: 0, y: 0 }}
-                  className="w-full h-0.5 bg-current transition-all duration-300"
-                />
+                <motion.div animate={mobileMenuOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }} className="w-full h-0.5 bg-current" />
+                <motion.div animate={mobileMenuOpen ? { opacity: 0 } : { opacity: 1 }} className="w-full h-0.5 bg-current" />
+                <motion.div animate={mobileMenuOpen ? { rotate: -45, y: -8 } : { rotate: 0, y: 0 }} className="w-full h-0.5 bg-current" />
               </div>
             </button>
 
-            {/* Admin controls hidden in production */}
-            {process.env.NODE_ENV === 'development' && user && (
-              <div className="flex items-center gap-3">
-                <div className="text-sm text-brown-600 dark:text-dark-text-secondary">
+            {isLocal && user && (
+              <div className="hidden md:flex items-center gap-2">
+                <span className="text-xs text-brown-600 dark:text-dark-text-secondary">
                   <UserOutlined className="mr-1" />
                   {user.username}
-                </div>
-                <Button
-                  type="text"
-                  icon={<LogoutOutlined />}
-                  onClick={logout}
-                  className="text-brown-600 dark:text-dark-text-secondary hover:text-orange-primary dark:hover:text-orange-300"
-                  size="small"
-                >
-                  Đăng xuất
+                </span>
+                <Button type="text" icon={<LogoutOutlined />} onClick={logout} size="small">
+                  {t.nav.logout}
                 </Button>
               </div>
             )}
+
+            <LanguageSwitcher />
 
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setDark((d) => !d)}
-              className="p-3 rounded-full bg-brown-100 dark:bg-dark-card shadow-lg hover:shadow-xl hover:bg-orange-100 dark:hover:bg-brown-800 transition-all duration-300 border border-brown-300/50 dark:border-orange-500/30"
-              aria-label="Toggle dark mode"
+              className="p-2.5 rounded-full bg-brown-100 dark:bg-dark-card shadow hover:shadow-md border border-brown-300/50 dark:border-orange-500/30"
+              aria-label={dark ? t.common.lightMode : t.common.darkMode}
             >
-              <motion.span
-                initial={false}
-                animate={{ rotate: dark ? 180 : 0 }}
-                transition={{ duration: 0.3 }}
-                className="text-xl block"
-              >
-                {mounted ? (dark ? '🌙' : '☀️') : '☀️'}
-              </motion.span>
+              <span className="text-lg">{mounted ? (dark ? '🌙' : '☀️') : '☀️'}</span>
             </motion.button>
-          </motion.div>
+          </div>
         </div>
       </div>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="lg:hidden bg-cream-primary/95 dark:bg-dark-bg/95 backdrop-blur-md border-t border-brown-200/30 dark:border-dark-card/30"
+            className="xl:hidden border-t border-brown-200/30 dark:border-dark-card/30 bg-cream-primary/95 dark:bg-dark-bg/95 backdrop-blur-md"
           >
-            <div className="container mx-auto px-4 py-4">
-              <div className="flex flex-col space-y-4">
-                {[
-                  { id: 'home', label: '01. Home', href: '#home' },
-                  { id: 'about', label: '02. About', href: '#about' },
-                  { id: 'skills', label: '03. Skills', href: '#skills' },
-                  { id: 'portfolio', label: '04. Portfolio', href: '#portfolio' },
-                  { id: 'contact', label: '05. Contact', href: '#contact' },
-                ].map((item, index) => (
-                  <motion.a
+            <div className="container mx-auto px-4 py-4 flex flex-col gap-1">
+              {navItems.map((item) => {
+                const active = activeSection === item.id
+                return (
+                  <a
                     key={item.id}
-                    href={item.href}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 * index, duration: 0.3 }}
+                    href={`#${item.id}`}
                     onClick={(e) => {
                       e.preventDefault()
-                      const element = document.getElementById(item.id)
-                      if (element) {
-                        element.scrollIntoView({ 
-                          behavior: 'smooth', 
-                          block: 'start' 
-                        })
-                      }
+                      scrollToId(item.id)
                       setMobileMenuOpen(false)
                     }}
-                    className={`block px-4 py-3 rounded-lg font-mono font-medium transition-all duration-300 ${
-                      activeSection === item.id
-                        ? 'bg-orange-primary/10 text-orange-primary dark:text-orange-300'
-                        : 'text-brown-600 dark:text-dark-text-secondary hover:text-orange-primary dark:hover:text-orange-300 hover:bg-orange-primary/5'
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium ${
+                      active
+                        ? 'bg-orange-primary/10 text-orange-primary'
+                        : 'text-brown-600 dark:text-dark-text-secondary'
                     }`}
                   >
-                    {item.label}
-                  </motion.a>
-                ))}
-                
-                {/* Admin controls hidden in production */}
-                {process.env.NODE_ENV === 'development' && user ? (
-                  <div className="pt-4 border-t border-brown-200/30 dark:border-dark-card/30 space-y-3">
-                    <Link
-                      href="/admin"
-                      className="block px-4 py-3 rounded-lg font-medium text-brown-600 dark:text-dark-text-secondary hover:text-orange-primary dark:hover:text-orange-300 hover:bg-orange-primary/5 transition-all duration-300"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Admin Panel
+                    <span className="w-6 font-mono text-xs tabular-nums opacity-70">{item.num}</span>
+                    <span>{item.label}</span>
+                  </a>
+                )
+              })}
+
+              {isLocal && (
+                <div className="pt-3 mt-2 border-t border-brown-200/30 dark:border-dark-card/30 space-y-1">
+                  {user ? (
+                    <>
+                      <Link href="/admin" className="block px-4 py-3 rounded-lg text-sm" onClick={() => setMobileMenuOpen(false)}>
+                        {t.nav.admin}
+                      </Link>
+                      <button
+                        className="block w-full text-left px-4 py-3 rounded-lg text-sm text-red-600"
+                        onClick={() => {
+                          logout()
+                          setMobileMenuOpen(false)
+                        }}
+                      >
+                        {t.nav.logout}
+                      </button>
+                    </>
+                  ) : (
+                    <Link href="/login" className="block px-4 py-3 rounded-lg text-sm" onClick={() => setMobileMenuOpen(false)}>
+                      {t.nav.login}
                     </Link>
-                    <button
-                      onClick={() => {
-                        logout()
-                        setMobileMenuOpen(false)
-                      }}
-                      className="block w-full text-left px-4 py-3 rounded-lg font-medium text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-300"
-                    >
-                      Đăng xuất
-                    </button>
-                  </div>
-                ) : process.env.NODE_ENV === 'development' ? (
-                  <div className="pt-4 border-t border-brown-200/30 dark:border-dark-card/30">
-                    <Link
-                      href="/login"
-                      className="block px-4 py-3 rounded-lg font-medium text-brown-600 dark:text-dark-text-secondary hover:text-orange-primary dark:hover:text-orange-300 hover:bg-orange-primary/5 transition-all duration-300"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Đăng nhập
-                    </Link>
-                  </div>
-                ) : null}
-              </div>
+                  )}
+                </div>
+              )}
             </div>
           </motion.div>
         )}
