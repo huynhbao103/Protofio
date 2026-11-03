@@ -48,10 +48,13 @@ export interface Project {
   _id: string
   name: string
   description: string
+  nameEn?: string
+  descriptionEn?: string
   technologies: string[]
   githubUrl?: string
   liveUrl?: string
-  status: 'ACTIVE' | 'ARCHIVED' | 'DRAFT'
+  status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED' | 'DRAFT'
+  inactiveReason?: string
   priority: number
   mainImage?: string
   images: ProjectImage[]
@@ -67,10 +70,14 @@ export interface Project {
 export interface ProjectFormData {
   name: string
   description: string
+  nameEn?: string
+  descriptionEn?: string
   technologies: string
   githubUrl?: string
   liveUrl?: string
   priority?: number
+  status?: 'ACTIVE' | 'INACTIVE'
+  inactiveReason?: string
 }
 
 

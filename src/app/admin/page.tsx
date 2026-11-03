@@ -1,28 +1,34 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import AdminPanel from '@/components/AdminPanel'
 import { Spin } from 'antd'
+import { isLocalClient } from '@/lib/isLocal'
 
 export default function AdminPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const [isLocal, setIsLocal] = useState(false)
+  const [checkedLocal, setCheckedLocal] = useState(false)
 
   useEffect(() => {
-    // Redirect to home in production
-    if (process.env.NODE_ENV === 'production') {
+    const local = isLocalClient()
+    setIsLocal(local)
+    setCheckedLocal(true)
+
+    if (!local) {
       router.push('/')
       return
     }
-    
+
     if (!loading && !user) {
       router.push('/login')
     }
   }, [user, loading, router])
 
-  if (loading) {
+  if (!checkedLocal || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Spin size="large" />
@@ -33,9 +39,7 @@ export default function AdminPage() {
     )
   }
 
-  if (!user) {
-    return null // Will redirect
-  }
+  if (!isLocal || !user) return null
 
   return <AdminPanel />
 }

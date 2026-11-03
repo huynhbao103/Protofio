@@ -3,15 +3,21 @@ import connectDB from '@/lib/mongodb'
 import Project from '@/models/Project'
 import mongoose from 'mongoose'
 
-// GET /api/projects - Get all projects (public)
-export async function GET() {
+// GET /api/projects - Public: ACTIVE only. Admin (?all=1 + auth): all statuses
+export async function GET(request: NextRequest) {
   try {
     console.log('🔍 Fetching projects...')
     
     await connectDB()
     console.log('✅ Database connected')
+
+    const wantAll = request.nextUrl.searchParams.get('all') === '1'
+    const token = request.cookies.get('auth-token')?.value
+    const isAdmin = Boolean(token && token.startsWith('demo-jwt-token-'))
+
+    const filter = wantAll && isAdmin ? {} : { status: 'ACTIVE' }
     
-    const projects = await Project.find({ status: 'ACTIVE' })
+    const projects = await Project.find(filter)
       .populate('createdBy', 'username')
       .sort({ priority: -1, createdAt: -1 })
       .lean()
@@ -65,11 +71,32 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     console.log('📋 API received body:', body)
     
-    const { name, description, technologies, githubUrl, liveUrl, priority = 0, status = 'ACTIVE' } = body
+    const {
+      name,
+      description,
+      nameEn,
+      descriptionEn,
+      technologies,
+      githubUrl,
+      liveUrl,
+      priority = 0,
+      status = 'ACTIVE',
+      inactiveReason,
+    } = body
 
     if (!name || !description || !technologies) {
       return NextResponse.json(
         { success: false, error: 'Name, description and technologies are required' },
+        { status: 400 }
+      )
+    }
+
+    const nextStatus = status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE'
+    const reason =
+      typeof inactiveReason === 'string' ? inactiveReason.trim() : ''
+    if (nextStatus === 'INACTIVE' && reason.length < 3) {
+      return NextResponse.json(
+        { success: false, error: 'Inactive projects require a reason (min 3 characters)' },
         { status: 400 }
       )
     }
@@ -105,11 +132,14 @@ export async function POST(request: NextRequest) {
     const project = new Project({
       name,
       description,
+      nameEn: typeof nameEn === 'string' ? nameEn.trim() : undefined,
+      descriptionEn: typeof descriptionEn === 'string' ? descriptionEn.trim() : undefined,
       technologies: techArray,
       githubUrl: cleanGithubUrl || undefined,
       liveUrl: cleanLiveUrl || undefined,
       priority: priority ? parseInt(priority) : 0,
-      status,
+      status: nextStatus,
+      inactiveReason: nextStatus === 'INACTIVE' ? reason : undefined,
       createdBy: adminUserId,
       images: [],
       videos: [],

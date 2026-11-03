@@ -56,7 +56,7 @@ function Dashboard({ className }: DashboardProps) {
       
       // Fetch projects and messages in parallel
       const [projects, messages] = await Promise.all([
-        projectApi.getAll(),
+        projectApi.getAllAdmin(),
         contactApi.getAll()
       ])
 

@@ -32,16 +32,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Check authentication status
+  // Check authentication status (admin chỉ chạy trên localhost)
   const checkAuth = async () => {
     try {
-      // Skip auth check in production
-      if (process.env.NODE_ENV === 'production') {
-        setUser(null)
-        setLoading(false)
-        return
+      if (typeof window !== 'undefined') {
+        const host = window.location.hostname
+        const local = host === 'localhost' || host === '127.0.0.1' || host === '[::1]'
+        if (!local) {
+          setUser(null)
+          setLoading(false)
+          return
+        }
       }
-      
+
       const token = Cookies.get('auth-token')
       if (!token) {
         setUser(null)
